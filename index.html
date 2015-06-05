@@ -32,6 +32,15 @@
             text-align: center;
             text-transform: uppercase
         }
+        .k-scheduler-navigation{
+            visibility: hidden;
+        }
+        .k-scheduler-views {
+            visibility: hidden;
+        }
+        .k-nav-day {
+            visibility: hidden;
+        }
     </style>
 </div>
 
@@ -42,12 +51,7 @@
                     date: new Date("2013/6/13"),
                     startTime: new Date("2013/6/13 07:00 AM"),
                     height: 600,
-                    views: [
-                        "day",
-                        { type: "workWeek", selected: true },
-                        "week",
-                        "month",
-                    ],
+                    views: [{ type: "workWeek", selected: true }],
                     timezone: "Etc/UTC",
                     dataSource: {
                         batch: true,
