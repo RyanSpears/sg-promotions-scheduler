@@ -2,24 +2,40 @@
 <html>
 <head>
     <base href="http://demos.telerik.com/kendo-ui/scheduler/angular">
-    <style>html { font-size: 12px; font-family: Arial, Helvetica, sans-serif; }</style>
+    <style>html {
+        font-size: 12px;
+        font-family: Arial, Helvetica, sans-serif;
+    }</style>
     <title></title>
-    <link rel="stylesheet" href="http://cdn.kendostatic.com/2015.1.429/styles/kendo.common-material.min.css" />
-    <link rel="stylesheet" href="http://cdn.kendostatic.com/2015.1.429/styles/kendo.material.min.css" />
-    <link rel="stylesheet" href="http://cdn.kendostatic.com/2015.1.429/styles/kendo.dataviz.min.css" />
-    <link rel="stylesheet" href="http://cdn.kendostatic.com/2015.1.429/styles/kendo.dataviz.material.min.css" />
-    <link rel="stylesheet" href="http://cdn.kendostatic.com/2015.1.429/styles/kendo.default.mobile.min.css" />
+    <link rel="stylesheet" href="http://cdn.kendostatic.com/2015.1.429/styles/kendo.common-material.min.css"/>
+    <link rel="stylesheet" href="http://cdn.kendostatic.com/2015.1.429/styles/kendo.material.min.css"/>
+    <link rel="stylesheet" href="http://cdn.kendostatic.com/2015.1.429/styles/kendo.dataviz.min.css"/>
+    <link rel="stylesheet" href="http://cdn.kendostatic.com/2015.1.429/styles/kendo.dataviz.material.min.css"/>
+    <link rel="stylesheet" href="http://cdn.kendostatic.com/2015.1.429/styles/kendo.default.mobile.min.css"/>
 
     <script src="http://cdn.kendostatic.com/2015.1.429/js/jquery.min.js"></script>
     <script src="http://cdn.kendostatic.com/2015.1.429/js/angular.min.js"></script>
     <script src="http://cdn.kendostatic.com/2015.1.429/js/kendo.all.min.js"></script>
     <script src="http://cdn.kendostatic.com/2015.1.429/js/kendo.timezones.min.js"></script>
+
+    <script id="event-template" type="text/x-kendo-template">
+        <h3>BANG</h3>
+        <div>Title: #: title #</div>
+    </script>
+
+    <script id="customEditorTemplate" type="text/x-kendo-template">
+        <div class="k-edit-label"><label for="title">Title</label></div>
+        <div data-container-for="title" class="k-edit-field">
+            <input type="text" class="k-input k-textbox" name="title" required="required" data-bind="value:title">
+        </div>
+    </script>
 </head>
 <body>
 <div id="example" ng-app="KendoDemos">
     <div ng-controller="MyCtrl">
         <div kendo-scheduler k-options="schedulerOptions">
-            <span k-event-template class='custom-event'>{{dataItem.title}}</span>
+            <span k-event-template class='custom-event'>{{dataItem.title}} {{dataItem.description}}</span>
+
             <div k-all-day-event-template class='custom-all-day-event'>{{dataItem.title}}</div>
         </div>
     </div>
@@ -28,94 +44,73 @@
         .custom-event {
             text-shadow: 0 1px 1px #000;
         }
+
         .custom-all-day-event {
             text-align: center;
             text-transform: uppercase
         }
-        .k-scheduler-navigation{
+
+        .k-scheduler-navigation {
             visibility: hidden;
         }
+
         .k-scheduler-views {
             visibility: hidden;
         }
-        .k-nav-day {
-            visibility: hidden;
-        }
+
     </style>
 </div>
 
 <script>
-    angular.module("KendoDemos", [ "kendo.directives" ])
-            .controller("MyCtrl", function($scope){
+    var events = [
+        new kendo.data.SchedulerEvent({
+            id: 1,
+            title: "Event1",
+            description: "x2 Multiplier",
+            start: new Date("2013/6/13 12:00"),
+            end: new Date("2013/6/13 14:00")
+        }),
+        new kendo.data.SchedulerEvent({
+            id: 2,
+            title: "Recurring event",
+            description: "x3 Multiplier",
+            start: new Date("2013/6/13 15:00"),
+            end: new Date("2013/6/13 17:00")
+        })
+    ];
+
+    var dataSource = new kendo.data.SchedulerDataSource({
+        transport: {
+            read: function (options) {
+                return options.success(events);
+            },
+            create: function () {
+                console.log(JSON.stringify(o));
+            },
+            destroy: function (o) {
+                console.log(JSON.stringify(o));
+            },
+            update: function (options) {
+                events[0] = options.data;
+                return options.success(events[0]);
+            }
+        }
+    });
+
+    angular.module("KendoDemos", ["kendo.directives"])
+            .controller("MyCtrl", function ($scope) {
                 $scope.schedulerOptions = {
                     date: new Date("2013/6/13"),
                     startTime: new Date("2013/6/13 07:00 AM"),
                     height: 600,
-                    views: [{ type: "workWeek", selected: true }],
+                    views: [{type: "workWeek", selected: true}],
                     timezone: "Etc/UTC",
-                    dataSource: {
-                        batch: true,
-                        transport: {
-                            read: {
-                                url: "http://demos.telerik.com/kendo-ui/service/tasks",
-                                dataType: "jsonp"
-                            },
-                            update: {
-                                url: "http://demos.telerik.com/kendo-ui/service/tasks/update",
-                                dataType: "jsonp"
-                            },
-                            create: {
-                                url: "http://demos.telerik.com/kendo-ui/service/tasks/create",
-                                dataType: "jsonp"
-                            },
-                            destroy: {
-                                url: "http://demos.telerik.com/kendo-ui/service/tasks/destroy",
-                                dataType: "jsonp"
-                            },
-                            parameterMap: function(options, operation) {
-                                if (operation !== "read" && options.models) {
-                                    return {models: kendo.stringify(options.models)};
-                                }
-                            }
-                        },
-                        schema: {
-                            model: {
-                                id: "taskId",
-                                fields: {
-                                    taskId: { from: "TaskID", type: "number" },
-                                    title: { from: "Title", defaultValue: "No title", validation: { required: true } },
-                                    start: { type: "date", from: "Start" },
-                                    end: { type: "date", from: "End" },
-                                    startTimezone: { from: "StartTimezone" },
-                                    endTimezone: { from: "EndTimezone" },
-                                    description: { from: "Description" },
-                                    recurrenceId: { from: "RecurrenceID" },
-                                    recurrenceRule: { from: "RecurrenceRule" },
-                                    recurrenceException: { from: "RecurrenceException" },
-                                    ownerId: { from: "OwnerID", defaultValue: 1 },
-                                    isAllDay: { type: "boolean", from: "IsAllDay" }
-                                }
-                            }
-                        },
-                        filter: {
-                            logic: "or",
-                            filters: [
-                                { field: "ownerId", operator: "eq", value: 1 },
-                                { field: "ownerId", operator: "eq", value: 2 }
-                            ]
-                        }
+                    dataSource: dataSource,
+                    eventTemplate: $("#event-template").html(),
+                    editable: {
+                        template: $("#customEditorTemplate").html()
                     },
-                    resources: [
-                        {
-                            field: "ownerId",
-                            title: "Owner",
-                            dataSource: [
-                                { text: "Alex", value: 1, color: "#f8a398" },
-                                { text: "Bob", value: 2, color: "#51a0ed" },
-                                { text: "Charlie", value: 3, color: "#56ca85" }
-                            ]
-                        }
-                    ]
+                    dateHeaderTemplate: kendo.template("<strong>#=kendo.toString(date, 'ddd')#</strong>")
                 };
             })
 </script>
